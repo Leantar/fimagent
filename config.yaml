@@ -1,0 +1,5 @@
+host: 127.0.0.1
+port: 50051
+cert_file: ../tls/agent_client.pem
+cert_key_file: ../tls/agent_client.key
+ca_file: ../tls/ca.pem
