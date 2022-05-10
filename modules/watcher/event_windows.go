@@ -2,21 +2,21 @@
 
 package watcher
 
-import "github.com/fsnotify/fsnotify"
+import (
+	"github.com/fsnotify/fsnotify"
+)
 
 func (e Event) Kind() string {
-	masks := map[fsnotify.Op]string{
-		fsnotify.Create: KindCreate,
-		fsnotify.Chmod:  KindChange,
-		fsnotify.Remove: KindDelete,
-		fsnotify.Write:  KindChange,
-		fsnotify.Rename: KindDelete,
-	}
-
-	for m, desc := range masks {
-		if e.Mask&uint64(m) != 0 {
-			return desc
-		}
+	if e.Mask&uint64(fsnotify.Create) == uint64(fsnotify.Create) {
+		return KindCreate
+	} else if e.Mask&uint64(fsnotify.Remove) == uint64(fsnotify.Remove) {
+		return KindDelete
+	} else if e.Mask&uint64(fsnotify.Write) == uint64(fsnotify.Write) {
+		return KindChange
+	} else if e.Mask&uint64(fsnotify.Rename) == uint64(fsnotify.Rename) {
+		return KindDelete
+	} else if e.Mask&uint64(fsnotify.Chmod) == uint64(fsnotify.Chmod) {
+		return KindChange
 	}
 
 	return KindUnknown

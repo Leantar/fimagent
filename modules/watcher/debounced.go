@@ -49,7 +49,7 @@ func (d *DebouncedWatcher) receiveEvents() {
 			d.mu.Lock()
 
 			if e, ok := d.events[event.Path]; ok {
-				// An event for this path already existed. We have to debounce it
+				// An event for this path already exists. We have to debounce it
 				d.events[event.Path] = debounceEvent(e, event)
 			} else {
 				d.events[event.Path] = event
