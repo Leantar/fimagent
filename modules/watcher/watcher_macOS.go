@@ -1,4 +1,4 @@
-//go:build macOS
+//go:build darwin
 
 package watcher
 
@@ -6,6 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fsnotify/fsevents"
+	"io/fs"
+	"io/ioutil"
+	"log"
 	"path/filepath"
 	"time"
 )
@@ -17,19 +20,21 @@ type Watcher struct {
 
 func New() *Watcher {
 
-	dev, err := fsevents.DeviceForPath(path)
+	path, err := ioutil.TempDir("", "fimagent")
 	if err != nil {
-		panic(fmt.Errorf("failed to retrieve device for path: %v", err))
+		log.Fatalf("Failed to create TempDir: %v", err)
 	}
 
-	w, err := &fsevents.EventStream{
-		Paths:   []string{},
+	dev, err := fsevents.DeviceForPath(path)
+	if err != nil {
+		log.Fatalf("failed to retrieve device for path: %v", err)
+	}
+
+	w := &fsevents.EventStream{
+		Paths:   []string{""},
 		Latency: 1 * time.Millisecond,
 		Device:  dev,
 		Flags:   fsevents.FileEvents | fsevents.WatchRoot}
-	if err != nil {
-		panic(fmt.Errorf("failed to initialize watcher: %w", err))
-	}
 	w.Start()
 
 	eventsChan := make(chan Event)
@@ -43,24 +48,19 @@ func New() *Watcher {
 
 				t := time.Now()
 				eventsChan <- Event{
-					Path:         event.Path,
-					Mask:         uint32(event.Flags),
+					Path:         event[0].Path,
+					Mask:         uint64(event[0].Flags),
 					Created:      t,
 					LastModified: t,
 				}
-			case err, ok := <-w.Errors:
-				if !ok {
-					return
-				}
-				panic(fmt.Errorf("watcher returned error: %w", err))
 			}
 		}
 	}()
 
-	return &Watcher{{
+	return &Watcher{
 		Events:  eventsChan,
 		watcher: w,
-	}}
+	}
 }
 
 func (w *Watcher) AddRecursiveWatch(p string) error {
@@ -69,7 +69,7 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 		return fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
-	streamPaths = w.GetStreamRefPaths()
+	streamPaths := w.watcher.Paths
 
 	return filepath.WalkDir(ap, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -82,14 +82,15 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 			}
 		}
 
-		w.Stop()
-		w.Paths = append(streamPaths, path)
-		w.Start()
+		w.watcher.Stop()
+		w.watcher.Paths = append(streamPaths, path)
+		w.watcher.Start()
 
 		return nil
 	})
 }
 
 func (w *Watcher) Close() error {
-	return w.Stop()
+	w.watcher.Stop()
+	return nil
 }

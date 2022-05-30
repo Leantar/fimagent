@@ -1,4 +1,4 @@
-//go:build macOS
+//go:build darwin
 
 package watcher
 
@@ -8,18 +8,17 @@ import (
 
 func (e Event) Kind() string {
 
-	if e.Mask&uint64(fsevents.EventFlag.ItemCreated) == uint64(fsevents.EventFlag.ItemCreated) {
+	if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemCreated)) == uint64(fsevents.EventFlags(fsevents.ItemCreated)) {
 		return KindCreate
-	} else if e.Mask&uint64(fsevents.EventFlag.ItemRemoved) == uint64(fsevents.EventFlag.ItemRemoved) {
+	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemRemoved)) == uint64(fsevents.EventFlags(fsevents.ItemRemoved)) {
 		return KindDelete
-	} else if e.Mask&uint64(fsevents.EventFlag.ItemRenamed) == uint64(fsevents.EventFlag.ItemRenamed) {
+	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemRenamed)) == uint64(fsevents.EventFlags(fsevents.ItemRenamed)) {
 		return KindDelete
-	} else if e.Mask&uint64(fsevents.EventFlag.ItemModified) == uint64(fsevents.EventFlag.ItemModified) {
+	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemModified)) == uint64(fsevents.EventFlags(fsevents.ItemModified)) {
 		return KindChange
-	} else if e.Mask&uint64(fsevents.EventFlag.ItemChangeOwner) == uint64(fsevents.EventFlag.ItemChangeOwner) {
+	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemChangeOwner)) == uint64(fsevents.EventFlags(fsevents.ItemChangeOwner)) {
 		return KindChange
 	}
-
 	return KindUnknown
 }
 
@@ -28,7 +27,7 @@ func debounceEvent(old, new Event) Event {
 	case KindCreate:
 		if old.Kind() == KindDelete {
 			// A previously deleted file was recreated. Therefore, the event must be rewritten to a change type
-			old.Mask = ItemModified
+			old.Mask = uint64(fsevents.EventFlags(fsevents.ItemModified))
 		} else {
 			old.Mask = new.Mask
 		}
@@ -40,7 +39,7 @@ func debounceEvent(old, new Event) Event {
 		if old.Kind() == KindDelete {
 			// Sometimes on creation of a file a "CHANGE" event gets emitted instead of a "CREATE".
 			// We handle it like in the "CREATE" case
-			old.Mask = ItemCreated
+			old.Mask = uint64(fsevents.EventFlags(fsevents.ItemCreated))
 		}
 		old.LastModified = new.Created
 	case KindUnknown:
