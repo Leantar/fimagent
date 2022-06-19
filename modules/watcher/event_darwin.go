@@ -8,21 +8,22 @@ import (
 
 func (e Event) Kind() string {
 
-	if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemCreated)) == uint64(fsevents.EventFlags(fsevents.ItemCreated)) {
+	if e.Mask&uint64(fsevents.ItemCreated) == uint64(fsevents.ItemCreated) {
 		return KindCreate
-	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemRemoved)) == uint64(fsevents.EventFlags(fsevents.ItemRemoved)) {
+	} else if e.Mask&uint64(fsevents.ItemRemoved) == uint64(fsevents.ItemRemoved) {
 		return KindDelete
-	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemRenamed)) == uint64(fsevents.EventFlags(fsevents.ItemRenamed)) {
+	} else if e.Mask&uint64(fsevents.ItemRenamed) == uint64(fsevents.ItemRenamed) {
 		return KindDelete
-	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemModified)) == uint64(fsevents.EventFlags(fsevents.ItemModified)) {
+	} else if e.Mask&uint64(fsevents.ItemModified) == uint64(fsevents.ItemModified) {
 		return KindChange
-	} else if e.Mask&uint64(fsevents.EventFlags(fsevents.ItemChangeOwner)) == uint64(fsevents.EventFlags(fsevents.ItemChangeOwner)) {
+	} else if e.Mask&uint64(fsevents.ItemChangeOwner) == uint64(fsevents.ItemChangeOwner) {
 		return KindChange
 	}
 	return KindUnknown
 }
 
 func debounceEvent(old, new Event) Event {
+	print("Event triggered")
 	switch new.Kind() {
 	case KindCreate:
 		if old.Kind() == KindDelete {
