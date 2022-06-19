@@ -45,7 +45,6 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 	go func() {
 		for msg := range wa.Events {
 			for _, event := range msg {
-				print(event.Path)
 				t := time.Now()
 				w.Events <- Event{
 					Path:         fmt.Sprintf("/%s", event.Path),
