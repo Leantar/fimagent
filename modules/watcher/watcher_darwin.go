@@ -23,7 +23,6 @@ func New() *Watcher {
 }
 
 func (w *Watcher) AddRecursiveWatch(p string) error {
-
 	ap, err := filepath.Abs(p)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path: %w", err)
@@ -49,7 +48,7 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 				print(event.Path)
 				t := time.Now()
 				w.Events <- Event{
-					Path:         event.Path,
+					Path:         fmt.Sprintf("/%s", event.Path),
 					Mask:         event.ID,
 					Created:      t,
 					LastModified: t,

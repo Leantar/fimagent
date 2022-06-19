@@ -5,8 +5,6 @@ package watcher
 func (e Event) Kind() string {
 	masks := map[uint64]string{
 		unix.FAN_CREATE:     KindCreate,
-		unix.FAN_MODIFY:     KindChange,
-		unix.FAN_ATTRIB:     KindChange,
 		unix.FAN_DELETE:     KindDelete,
 		unix.FAN_MOVED_TO:   KindCreate,
 		unix.FAN_MOVED_FROM: KindDelete,
@@ -18,7 +16,7 @@ func (e Event) Kind() string {
 		}
 	}
 
-	return KindUnknown
+	return KindChange
 }
 
 func debounceEvent(old, new Event) Event {
@@ -40,8 +38,6 @@ func debounceEvent(old, new Event) Event {
 			// We handle it like in the "CREATE" case
 			old.Mask = unix.FAN_MODIFY
 		}
-		old.LastModified = new.Created
-	case KindUnknown:
 		old.LastModified = new.Created
 	}
 

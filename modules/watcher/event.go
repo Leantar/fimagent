@@ -5,10 +5,9 @@ import (
 )
 
 const (
-	KindCreate  = "CREATE"
-	KindDelete  = "DELETE"
-	KindChange  = "CHANGE"
-	KindUnknown = "UNKNOWN"
+	KindCreate = "CREATE"
+	KindDelete = "DELETE"
+	KindChange = "CHANGE"
 )
 
 type Event struct {
