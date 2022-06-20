@@ -76,12 +76,3 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 func (w *Watcher) Close() error {
 	return w.watcher.Close()
 }
-
-func isWatched(watcher *fsnotify.Watcher, p string) bool {
-	for _, path := range watcher.WatchList() {
-		if path == p {
-			return true
-		}
-	}
-	return false
-}
