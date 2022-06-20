@@ -252,8 +252,8 @@ func (a *Agent) reportFsStatus(watchedPaths []string) (err error) {
 			return
 		}
 	}
-	_, err = stream.CloseAndRecv()
-	return
+
+	return stream.CloseSend()
 }
 
 func walk(objs *[]models.FsObject) fs.WalkDirFunc {

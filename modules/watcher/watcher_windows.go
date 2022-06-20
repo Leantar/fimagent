@@ -5,6 +5,7 @@ package watcher
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"github.com/rs/zerolog/log"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -31,12 +32,14 @@ func New() *Watcher {
 				}
 
 				t := time.Now()
-				eventsChan <- Event{
+				evt := Event{
 					Path:         event.Name,
 					Mask:         uint64(event.Op),
 					Created:      t,
 					LastModified: t,
 				}
+
+				eventsChan <- evt
 			case err, ok := <-w.Errors:
 				if !ok {
 					return
@@ -63,6 +66,7 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 			if err != nil {
 				return err
 			}
+			log.Info().Msgf("added watch for %s", path)
 		}
 
 		return nil
@@ -71,4 +75,13 @@ func (w *Watcher) AddRecursiveWatch(p string) error {
 
 func (w *Watcher) Close() error {
 	return w.watcher.Close()
+}
+
+func isWatched(watcher *fsnotify.Watcher, p string) bool {
+	for _, path := range watcher.WatchList() {
+		if path == p {
+			return true
+		}
+	}
+	return false
 }

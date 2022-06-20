@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"github.com/rs/zerolog/log"
 	"path/filepath"
 	"sync"
 	"time"
@@ -75,6 +76,7 @@ func (d *DebouncedWatcher) sendEvents() {
 				// Forward event to user
 				due := e.LastModified.Add(10 * time.Second)
 				if time.Now().After(due) {
+					log.Info().Msgf("firing event for %s", e.Path)
 					d.Events <- e
 					delete(d.events, e.Path)
 				}
@@ -93,13 +95,15 @@ func (d *DebouncedWatcher) removeSuperseded(event Event) {
 
 	for _, e := range d.events {
 		path := e.Path
+		lastPath := path
 
-		for path != "/" {
+		for path != lastPath {
 			// Discard other events if they occurred in this event folder
 			if event.Path == path {
 				delete(d.events, e.Path)
 			}
 
+			lastPath = path
 			path = filepath.Dir(path)
 		}
 	}
