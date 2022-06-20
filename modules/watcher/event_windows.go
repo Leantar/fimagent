@@ -11,15 +11,11 @@ func (e Event) Kind() string {
 		return KindCreate
 	} else if e.Mask&uint64(fsnotify.Remove) == uint64(fsnotify.Remove) {
 		return KindDelete
-	} else if e.Mask&uint64(fsnotify.Write) == uint64(fsnotify.Write) {
-		return KindChange
 	} else if e.Mask&uint64(fsnotify.Rename) == uint64(fsnotify.Rename) {
 		return KindDelete
-	} else if e.Mask&uint64(fsnotify.Chmod) == uint64(fsnotify.Chmod) {
-		return KindChange
 	}
 
-	return KindUnknown
+	return KindChange
 }
 
 func debounceEvent(old, new Event) Event {
@@ -41,8 +37,6 @@ func debounceEvent(old, new Event) Event {
 		if old.Kind() == KindDelete {
 			old.Mask = uint64(fsnotify.Write)
 		}
-		old.LastModified = new.Created
-	case KindUnknown:
 		old.LastModified = new.Created
 	}
 

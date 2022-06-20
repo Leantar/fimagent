@@ -1,30 +1,29 @@
-//go:build linux
+//go:build darwin
 
 package watcher
 
+import (
+	"github.com/fsnotify/fsevents"
+)
+
 func (e Event) Kind() string {
-	masks := map[uint64]string{
-		unix.FAN_CREATE:     KindCreate,
-		unix.FAN_DELETE:     KindDelete,
-		unix.FAN_MOVED_TO:   KindCreate,
-		unix.FAN_MOVED_FROM: KindDelete,
+	if e.Mask&uint64(fsevents.ItemCreated) == uint64(fsevents.ItemCreated) {
+		return KindCreate
+	} else if e.Mask&uint64(fsevents.ItemRemoved) == uint64(fsevents.ItemRemoved) {
+		return KindDelete
+	} else if e.Mask&uint64(fsevents.ItemRenamed) == uint64(fsevents.ItemRenamed) {
+		return KindDelete
 	}
-
-	for m, desc := range masks {
-		if e.Mask&m != 0 {
-			return desc
-		}
-	}
-
 	return KindChange
 }
 
 func debounceEvent(old, new Event) Event {
+	print("Event triggered")
 	switch new.Kind() {
 	case KindCreate:
 		if old.Kind() == KindDelete {
 			// A previously deleted file was recreated. Therefore, the event must be rewritten to a change type
-			old.Mask = unix.FAN_MODIFY
+			old.Mask = uint64(fsevents.ItemModified)
 		} else {
 			old.Mask = new.Mask
 		}
@@ -36,7 +35,7 @@ func debounceEvent(old, new Event) Event {
 		if old.Kind() == KindDelete {
 			// Sometimes on creation of a file a "CHANGE" event gets emitted instead of a "CREATE".
 			// We handle it like in the "CREATE" case
-			old.Mask = unix.FAN_MODIFY
+			old.Mask = uint64(fsevents.ItemCreated)
 		}
 		old.LastModified = new.Created
 	}

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/Leantar/fimproto v0.1.4
+	github.com/fsnotify/fsevents v0.1.1
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/rs/zerolog v1.26.1
 	github.com/zeebo/blake3 v0.2.3

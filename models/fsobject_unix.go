@@ -1,4 +1,4 @@
-//go:build linux
+//go:build darwin || linux
 
 package models
 
@@ -29,7 +29,7 @@ func NewFsObject(path string) (FsObject, error) {
 		Modified: modified,
 		Uid:      stat.Uid,
 		Gid:      stat.Gid,
-		Mode:     stat.Mode,
+		Mode:     uint32(stat.Mode),
 	}
 
 	// Check if file is regular
